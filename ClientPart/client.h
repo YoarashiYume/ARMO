@@ -27,7 +27,7 @@ private:
 
     port_type port;
     QString addr;
-    std::atomic_uint64_t countOfPixelInPackage {8};
+    std::size_t countOfPacketsSent {64};
 
     std::mutex mx;
     QQueue<QByteArray> packetList;
@@ -38,18 +38,17 @@ private:
     void addDataToQueue(const QByteArray& data);
     void startSend();
 
-    void init(const QString& strHost, port_type nPort, QObject* parent);
+    void init(const QString& strHost, port_type nPort,const std::size_t countOfPacket, QObject* parent);
 
 public:
-    explicit Client(const QString& strHost, port_type nPort, QObject* parent = nullptr);
-    explicit Client(int argc, char *argv[], QObject* parent = nullptr);
+    explicit Client(const QString& strHost, port_type nPort,const std::size_t countOfPacket = 64, QObject* parent = nullptr);
+    explicit Client(int argc, char *argv[],const std::size_t countOfPacket = 64, QObject* parent = nullptr);
 
     Client() = delete;
     Client(const Client&) = delete;
     Client(Client&&) = delete;
 
     bool setPath(const QString& path);
-    void setCountOfPixelInPackage(const std::size_t count);
 
     bool isCorrectStart() const;
     const QString& what() const;

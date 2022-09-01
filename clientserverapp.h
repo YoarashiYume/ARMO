@@ -34,7 +34,6 @@ public:
     ClientServerApp(int argc, char *argv[], QObject *parent = nullptr);
     ~ClientServerApp() = default;
 
-    void setCountOfPixelInPackage(const std::size_t count);
 
     bool isCorrectStart() const;
     const QString what() const;

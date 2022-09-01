@@ -1,10 +1,11 @@
 #include "client.h"
 
 
-void Client::init(const QString& strHost,port_type nPort, QObject* parent)
+void Client::init(const QString& strHost,port_type nPort,const std::size_t countOfPacket, QObject* parent)
 {
     this->port = nPort;
     this->addr = strHost;
+    this->countOfPacketsSent = countOfPacket;
     this->socket.reset(new QTcpSocket{this});
 
     //Configure socket and threadpool
@@ -24,13 +25,13 @@ void Client::init(const QString& strHost,port_type nPort, QObject* parent)
 }
 
 
-Client::Client(const QString& strHost, port_type nPort, QObject* parent )
+Client::Client(const QString& strHost, port_type nPort,const std::size_t countOfPacket, QObject* parent )
     :QObject(parent)
 {
-    this->init(strHost, nPort, parent);
+    this->init(strHost, nPort,countOfPacket, parent);
 }
 
-Client::Client(int argc, char *argv[], QObject* parent)
+Client::Client(int argc, char *argv[],const std::size_t countOfPacket, QObject* parent)
     :QObject(parent) , socket{new QTcpSocket{this}}
 {
     // Parsing input arguments
@@ -50,7 +51,7 @@ Client::Client(int argc, char *argv[], QObject* parent)
     }
     if(this->isCorrect)
     {
-        this->init(strHost, port, parent);
+        this->init(strHost, port,countOfPacket, parent);
         this->isCorrect &= this->setPath(path);
     }
 
@@ -70,10 +71,6 @@ void Client::disconnectedSocket()
     emit disconnected();
 }
 
-void Client::setCountOfPixelInPackage(const std::size_t count)
-{
-    this->countOfPixelInPackage.store(count);
-}
 
 bool Client::setPath(const QString& path)
 {
@@ -138,13 +135,13 @@ void Client::theadSendFunction(std::size_t threadId)
     Packet pac{};
     uint8_t currentPacketCount = 0;
 
-    QByteArray info{static_cast<qsizetype>(countOfPixelInPackage*sizeof(Packet)), 0}; // Configure buffer size
+    QByteArray info{static_cast<qsizetype>(countOfPacketsSent*sizeof(Packet)), 0}; // Configure buffer size
 
 
     for (auto x = threadId; x < size.width(); x+=countOfThread)
         for (auto y = 0; y < size.height(); ++y, ++currentPacketCount )
         {
-            if (currentPacketCount == countOfPixelInPackage)
+            if (currentPacketCount == countOfPacketsSent)
             {
                 //Sending the buffer to the send queue
                 currentPacketCount = 0;
@@ -178,7 +175,7 @@ void Client::connected()
     socket->write(info);
     socket->flush();
     socket->waitForBytesWritten(1000);
-
+    QThread::msleep(10);
     startSend();
 }
 void Client::readyRead()

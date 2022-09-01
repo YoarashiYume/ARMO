@@ -108,4 +108,5 @@ void Server::disconnected()
     this->imageList.back().second->resize(work->second->getImage()->size());
     this->imageList.back().second->show();
 
+
 }

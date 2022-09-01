@@ -13,7 +13,7 @@ ClientServerApp::ClientServerApp(int argc, char *argv[], QObject *parent)
         if (type == "-c")
         {
             this->currentType = Type::CLIENT;
-            cApp.reset(new Client(argc-1, argv, parent));
+            cApp.reset(new Client(argc-1, argv,64, parent));
             this->isCorrect = cApp->isCorrectStart();
         }
         else if (type == "-s")
@@ -30,12 +30,6 @@ ClientServerApp::ClientServerApp(int argc, char *argv[], QObject *parent)
             this->isCorrect = false;
         }
     }
-}
-
-void ClientServerApp::setCountOfPixelInPackage(const std::size_t count)
-{
-    if (this->currentType == Type::CLIENT)
-        cApp->setCountOfPixelInPackage(count);
 }
 
 bool ClientServerApp::isCorrectStart() const
