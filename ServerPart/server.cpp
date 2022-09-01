@@ -105,6 +105,7 @@ void Server::disconnected()
     Qt::WindowFlags eFlags = this->imageList.back().second->windowFlags();
     eFlags |= Qt::WindowStaysOnTopHint;
     this->imageList.back().second->setWindowFlags(eFlags);
+    this->imageList.back().second->resize(work->second->getImage()->size());
     this->imageList.back().second->show();
 
 }
