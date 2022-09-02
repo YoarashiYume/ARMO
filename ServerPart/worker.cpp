@@ -56,6 +56,8 @@ void Worker::readyRead()
     }
     else
         QThreadPool::globalInstance()->start(std::bind(std::bind(&Worker::updateImage, this, socketInfo)));
+    ptr->write("done");
+    ptr->flush();
 }
 
 void Worker::disconnected()

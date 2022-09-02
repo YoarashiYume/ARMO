@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "../ServerPart/Packet.h"
+#include "../Packet.h"
 
 class Client final : public QObject
 {
@@ -27,7 +27,7 @@ private:
 
     port_type port;
     QString addr;
-    std::size_t countOfPacketsSent {64};
+    std::size_t countOfPacketsSent {128};
 
     std::mutex mx;
     QQueue<QByteArray> packetList;
@@ -41,8 +41,8 @@ private:
     void init(const QString& strHost, port_type nPort,const std::size_t countOfPacket, QObject* parent);
 
 public:
-    explicit Client(const QString& strHost, port_type nPort,const std::size_t countOfPacket = 64, QObject* parent = nullptr);
-    explicit Client(int argc, char *argv[],const std::size_t countOfPacket = 64, QObject* parent = nullptr);
+    explicit Client(const QString& strHost, port_type nPort,const std::size_t countOfPacket = 128, QObject* parent = nullptr);
+    explicit Client(int argc, char *argv[],const std::size_t countOfPacket = 128, QObject* parent = nullptr);
 
     Client() = delete;
     Client(const Client&) = delete;

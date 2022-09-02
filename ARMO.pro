@@ -23,6 +23,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     ClientPart/client.h \
+    Packet.h \
     ServerPart/Packet.h \
     ServerPart/server.h \
     ServerPart/worker.h \

@@ -1,7 +1,7 @@
 #ifndef WORKER_H
 #define WORKER_H
 
-#include "Packet.h"
+#include "../Packet.h"
 
 #include <QTcpSocket>
 #include <QThreadPool>
