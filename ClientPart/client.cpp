@@ -10,14 +10,10 @@ void Client::init(const QString& strHost,port_type nPort,const std::size_t count
 
     //Configure socket and threadpool
     connect(this, SIGNAL(disconnected()), parent, SLOT(quit()));
-    connect(socket.get(), SIGNAL(errorOccurred(QAbstractSocket::SocketError)),
-            this, SLOT(slotError(QAbstractSocket::SocketError)));
-    connect(socket.get(), SIGNAL(connected()),
-            this, SLOT(connected()));
-    connect(socket.get(), SIGNAL(disconnected()),
-            this, SLOT(disconnectedSocket()));
-    connect(socket.get(), SIGNAL(readyRead()),
-            this, SLOT(readyRead()));
+    connect(socket.get(), SIGNAL(errorOccurred(QAbstractSocket::SocketError)), this, SLOT(slotError(QAbstractSocket::SocketError)));
+    connect(socket.get(), SIGNAL(connected()), this, SLOT(connected()));
+    connect(socket.get(), SIGNAL(disconnected()), this, SLOT(disconnectedSocket()));
+    connect(socket.get(), SIGNAL(readyRead()), this, SLOT(readyRead()));
     socket->connectToHost(addr, port);
 
     this->countOfThread = std::thread::hardware_concurrency();
@@ -95,11 +91,12 @@ bool Client::setPath(const QString& path)
     }
     return result;
 }
-void Client::startSend()
+void Client::prepareData()
 {
     //Create tasks
     for (auto i = 0u; i < countOfThread; ++i)
-        QThreadPool::globalInstance()->start(std::bind(&Client::theadSendFunction, this, i));
+        QThreadPool::globalInstance()->start(std::bind(&Client::theadPrepareFunction, this, i));
+    QThreadPool::globalInstance()->waitForDone();
 }
 void Client::addDataToQueue(const QByteArray& data)
 {
@@ -107,37 +104,39 @@ void Client::addDataToQueue(const QByteArray& data)
     std::lock_guard<decltype(mx)> lg{mx};
     this->packetList.emplace_back(data);
 }
-void Client::theadSendFunction(std::size_t threadId)
+void Client::theadPrepareFunction(std::size_t threadId)
 {
     //Prepare data before reading
     auto size = this->img->size();
 
     Packet pac{};
-    uint8_t currentPacketCount = 0;
+    uint32_t currentPacketSize = 0;
 
-    QByteArray info{static_cast<qsizetype>(countOfPacketsSent*sizeof(Packet)), 0}; // Configure buffer size
+    auto currentSize = countOfPacketsSent * sizeof(Packet);
+
+    QByteArray info{static_cast<qsizetype>(currentSize), 0}; // Configure buffer size
 
 
     for (auto x = threadId; x < size.width(); x+=countOfThread)
-        for (auto y = 0; y < size.height(); ++y, ++currentPacketCount )
+        for (auto y = 0; y < size.height(); ++y, currentPacketSize+=sizeof(Packet))
         {
-            if (currentPacketCount == countOfPacketsSent)
+            if (currentSize == currentPacketSize)
             {
                 //Sending the buffer to the send queue
-                currentPacketCount = 0;
+                currentPacketSize = 0;
                 addDataToQueue(info);
             }
             //Fill buffer
             pac.xCoord = static_cast<std::uint16_t>(x);
             pac.yCoord = static_cast<std::uint16_t>(y);
             pac.rgba = this->img->pixel(x,y);
-            memcpy(info.data() +currentPacketCount * sizeof(pac) , &pac, sizeof(pac));
+            memcpy(info.data() + currentPacketSize , &pac, sizeof(Packet));
 
         }
-    //last buffer send to the send queue
-    if (currentPacketCount != 0)
+    //Sends the last buffer to the send queue
+    if (currentPacketSize != 0)
     {
-        info.resize(currentPacketCount * sizeof(pac));
+        info.resize(currentPacketSize * sizeof(pac));
         addDataToQueue(info);
     }
 }
@@ -152,8 +151,7 @@ void Client::connected()
     QByteArray info{sizeof(initPacket), 0};
 
     memcpy(info.data(), &initPacket, sizeof(initPacket));
-    startSend();
-    QThreadPool::globalInstance()->waitForDone();
+    prepareData();
     socket->write(info);
     socket->flush();
 
@@ -161,7 +159,7 @@ void Client::connected()
 void Client::readyRead()
 {
     //Sends a packets
-    socket->readAll();
+    auto answer = socket->readAll();
     if (this->packetList.empty())
     {
         socket->close();
@@ -169,9 +167,18 @@ void Client::readyRead()
     }
     else
     {
-        socket->write(packetList.front());
-        packetList.pop_front();
+        QByteArray temp{sizeof(QByteArray::size_type), 0};
+        QByteArray::size_type msgSize = packetList.front().size();
+        memcpy(temp.data(), &msgSize, sizeof(QByteArray::size_type));
+        socket->write(temp,temp.size());
+
+        auto realWrite = socket->write(packetList.front(),packetList.front().size());
+        while (realWrite != msgSize)
+            realWrite += socket->write(packetList.front().data()+realWrite,packetList.front().size()-realWrite);
+
+        socket->waitForBytesWritten();
         socket->flush();
+        packetList.pop_front();
     }
 }
 void Client::slotError(QAbstractSocket::SocketError sockErr)

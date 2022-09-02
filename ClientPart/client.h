@@ -34,9 +34,9 @@ private:
 
     std::size_t countOfThread;
 
-    void theadSendFunction(std::size_t threadId);   
+    void theadPrepareFunction(std::size_t threadId);
     void addDataToQueue(const QByteArray& data);
-    void startSend();
+    void prepareData();
 
     void init(const QString& strHost, port_type nPort,const std::size_t countOfPacket, QObject* parent);
 

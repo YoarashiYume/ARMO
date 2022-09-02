@@ -23,7 +23,12 @@ private:
     socket_type ptr;
     std::atomic_bool isDone;
 
-    void updateImage(QByteArray info);  
+    std::list<QByteArray> arrs;
+
+    std::mutex mx, getMx;
+    uint32_t countOfThread{}, totalCountOfThread{};
+
+    void updateImage(std::size_t index);
 public:
     Worker() = delete;
     Worker(const qintptr& handle, QObject * parent = nullptr);
@@ -40,6 +45,7 @@ signals:
     void socketDisconnected();
 
 public slots:
+    void errorSlot(QAbstractSocket::SocketError sockErr);
     void disconnected();
     void connected();
     void readyRead();

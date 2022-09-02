@@ -13,7 +13,7 @@ ClientServerApp::ClientServerApp(int argc, char *argv[], QObject *parent)
         if (type == "-c")
         {
             this->currentType = Type::CLIENT;
-            cApp.reset(new Client(argc-1, argv,128, parent));
+            cApp.reset(new Client(argc-1, argv,8192, parent));
             this->isCorrect = cApp->isCorrectStart();
         }
         else if (type == "-s")
