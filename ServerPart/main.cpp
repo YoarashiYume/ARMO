@@ -1,8 +1,7 @@
-#include <QApplication>
+#include <QCoreApplication>
 #include <iostream>
 
-#include "clientserverapp.h"
-
+#include "server.h"
 QTextStream& qStdOut()
 {
     static QTextStream ts( stdout );
@@ -11,8 +10,8 @@ QTextStream& qStdOut()
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    ClientServerApp app(argc, argv, &a);
+    QCoreApplication a(argc, argv);
+    Server app(argc, argv, &a);
     if (!app.isCorrectStart())
     {
         qStdOut() << app.what();
@@ -22,3 +21,4 @@ int main(int argc, char *argv[])
     }
     return a.exec();
 }
+

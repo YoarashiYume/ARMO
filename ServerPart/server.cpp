@@ -4,7 +4,7 @@ void Server::init(port_type serverPort, QObject* parent)
 {
     this->port = serverPort;
     //Configure threadpool and exit button
-    QThreadPool::globalInstance()->setMaxThreadCount(std::thread::hardware_concurrency());
+    QThreadPool::globalInstance()->setMaxThreadCount(QThread::idealThreadCount());
 
     this->exitButton.reset(new QPushButton{});
     this->exitButton->setText("Exit");
@@ -87,8 +87,12 @@ void Server::disconnected()
     //When any socket is disconnected (full image delivery is expected), the image is displayed
 
     std::lock_guard<decltype(mx)> lg{mx};
-    auto work = std::find_if(storage.begin(), storage.end(), [](auto& el){return el.second->isFinished();});
-    auto closedImage = std::remove_if(imageList.begin(), imageList.end(), [this](auto& el)
+    auto work = std::find_if(storage.begin(), storage.end(), [](typename decltype(storage)::value_type & el)
+    {
+            return el.second->isFinished();
+    });
+
+    auto closedImage = std::remove_if(imageList.begin(), imageList.end(), [this](typename decltype(imageList)::value_type& el)
     {
         if (el.second->isHidden())
             this->storage.erase(el.first);//Handler destruction
@@ -97,7 +101,7 @@ void Server::disconnected()
 
     imageList.erase(closedImage, imageList.end());
 
-    this->imageList.emplace_back(work->first, new QLabel{nullptr});
+    this->imageList.emplace_back(work->first, nullptr);
 
     this->imageList.back().second->setPixmap(QPixmap::fromImage(*work->second->getImage()));
 

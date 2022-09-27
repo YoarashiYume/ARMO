@@ -1,13 +1,26 @@
 #ifndef WORKER_H
 #define WORKER_H
 
-#include "../Packet.h"
+#include "Packet.h"
 
 #include <QTcpSocket>
 #include <QThreadPool>
 #include <QImage>
 
 #include <memory>
+#include <atomic>
+#include <mutex>
+#include <QRunnable>
+#include <functional>
+
+struct Runnable : public QRunnable
+{
+    std::function<void()> innetFunction;
+    void run()
+    {
+        innetFunction();
+    }
+};
 
 
 class Worker final: public QObject

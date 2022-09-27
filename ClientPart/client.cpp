@@ -16,7 +16,7 @@ void Client::init(const QString& strHost,port_type nPort,const std::size_t count
     connect(socket.get(), SIGNAL(readyRead()), this, SLOT(readyRead()));
     socket->connectToHost(addr, port);
 
-    this->countOfThread = std::thread::hardware_concurrency();
+    this->countOfThread = QThread::idealThreadCount();
     QThreadPool::globalInstance()->setMaxThreadCount(countOfThread);
 }
 
@@ -35,6 +35,7 @@ Client::Client(int argc, char *argv[],const std::size_t countOfPacket, QObject* 
     {
         this->errMessage =  "Missing arguments\n";
         this->isCorrect = false;
+        return;
     }
     QString path{argv[1]},strHost{argv[2]}, strPort{argv[3]};
 
@@ -95,14 +96,19 @@ void Client::prepareData()
 {
     //Create tasks
     for (auto i = 0u; i < countOfThread; ++i)
-        QThreadPool::globalInstance()->start(std::bind(&Client::theadPrepareFunction, this, i));
+    {
+        Runnable *runnableObj = new Runnable;
+        runnableObj->innetFunction = std::bind(&Client::theadPrepareFunction, this, i);
+        runnableObj->setAutoDelete(true);
+        QThreadPool::globalInstance()->start(runnableObj);
+    }
     QThreadPool::globalInstance()->waitForDone();
 }
 void Client::addDataToQueue(const QByteArray& data)
 {
     //Adds buffer data to queue
     std::lock_guard<decltype(mx)> lg{mx};
-    this->packetList.emplace_back(data);
+    this->packetList.enqueue(data);
 }
 void Client::theadPrepareFunction(std::size_t threadId)
 {
@@ -114,7 +120,7 @@ void Client::theadPrepareFunction(std::size_t threadId)
 
     auto currentSize = countOfPacketsSent * sizeof(Packet);
 
-    QByteArray info{static_cast<qsizetype>(currentSize), 0}; // Configure buffer size
+    QByteArray info{static_cast<QByteArray::size_type>(currentSize), 0}; // Configure buffer size
 
 
     for (auto x = threadId; x < size.width(); x+=countOfThread)

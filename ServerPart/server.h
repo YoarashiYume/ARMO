@@ -10,9 +10,9 @@
 
 #include <unordered_map>
 #include <mutex>
-#include <thread>
 #include <vector>
-
+#include <algorithm>
+#include <utility>
 
 #include "worker.h"
 

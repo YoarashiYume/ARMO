@@ -39,7 +39,7 @@ void Worker::updateImage(std::size_t index)
     for (auto i = 0u; i < info.size(); i+=sizeof(Packet))
     {
         memcpy(&pac, info.data() + i, sizeof(Packet));
-        this->image->setPixelColor(pac.xCoord, pac.yCoord, pac.rgba);
+        this->image->setPixel(pac.xCoord, pac.yCoord, pac.rgba);
     }
     info.clear();
     mx.lock();
@@ -49,6 +49,7 @@ void Worker::updateImage(std::size_t index)
 void Worker::connected()
 {
 }
+
 
 void Worker::readyRead()
 {
@@ -84,7 +85,10 @@ void Worker::readyRead()
             socketInfo.append(ptr->read(needToRead));
         }
         arrs.emplace_back(socketInfo);
-        QThreadPool::globalInstance()->start(std::bind(std::bind(&Worker::updateImage, this, arrs.size()-1)));
+        Runnable* runnableObj = new Runnable;
+        runnableObj->innetFunction = std::bind(&Worker::updateImage, this, arrs.size()-1);
+        runnableObj->setAutoDelete(true);
+        QThreadPool::globalInstance()->start(runnableObj);
         ++totalCountOfThread;
     }
     ptr->write("done");

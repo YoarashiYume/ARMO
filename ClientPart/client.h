@@ -8,8 +8,21 @@
 #include <QQueue>
 
 #include <memory>
+#include <mutex>
 
-#include "../Packet.h"
+#include <QRunnable>
+#include <functional>
+
+struct Runnable : public QRunnable
+{
+    std::function<void()> innetFunction;
+    void run()
+    {
+        innetFunction();
+    }
+};
+
+#include "Packet.h"
 
 class Client final : public QObject
 {
