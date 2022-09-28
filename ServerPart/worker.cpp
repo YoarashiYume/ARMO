@@ -9,7 +9,7 @@ Worker::Worker(const qintptr& handle, QObject * parent)
     connect(ptr.get(), SIGNAL(disconnected()), this, SLOT(disconnected()));
     connect(ptr.get(), SIGNAL(readyRead()), this, SLOT(readyRead()));
     connect(ptr.get(), SIGNAL(connected()), this, SLOT(connected()));
-    connect(ptr.get(), SIGNAL(errorOccurred(QAbstractSocket::SocketError)), this, SLOT(errorSlot(QAbstractSocket::SocketError)));
+    connect(ptr.get(), SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorSlot(QAbstractSocket::SocketError)));
 
 
 }
@@ -29,7 +29,6 @@ bool Worker::isFinished() const
     return isDone.load();
 }
 
-
 void Worker::updateImage(std::size_t index)
 {
     //Updating pixels in image
@@ -38,7 +37,7 @@ void Worker::updateImage(std::size_t index)
 
     for (auto i = 0u; i < info.size(); i+=sizeof(Packet))
     {
-        memcpy(&pac, info.data() + i, sizeof(Packet));
+        memcpy(&pac, info.data() + i, sizeof(Packet));       
         this->image->setPixel(pac.xCoord, pac.yCoord, pac.rgba);
     }
     info.clear();

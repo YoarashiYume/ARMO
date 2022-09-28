@@ -7,6 +7,7 @@ void Server::init(port_type serverPort, QObject* parent)
     QThreadPool::globalInstance()->setMaxThreadCount(QThread::idealThreadCount());
 
     this->exitButton.reset(new QPushButton{});
+    this->exitButton->setGeometry(50,50,300,23);
     this->exitButton->setText("Exit");
     this->exitButton->show();
 
@@ -102,6 +103,7 @@ void Server::disconnected()
     imageList.erase(closedImage, imageList.end());
 
     this->imageList.emplace_back(work->first, nullptr);
+    this->imageList.back().second.reset(new QLabel);
 
     this->imageList.back().second->setPixmap(QPixmap::fromImage(*work->second->getImage()));
 

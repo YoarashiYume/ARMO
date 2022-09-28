@@ -10,13 +10,13 @@ void Client::init(const QString& strHost,port_type nPort,const std::size_t count
 
     //Configure socket and threadpool
     connect(this, SIGNAL(disconnected()), parent, SLOT(quit()));
-    connect(socket.get(), SIGNAL(errorOccurred(QAbstractSocket::SocketError)), this, SLOT(slotError(QAbstractSocket::SocketError)));
+    connect(socket.get(), SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(slotError(QAbstractSocket::SocketError)));
     connect(socket.get(), SIGNAL(connected()), this, SLOT(connected()));
     connect(socket.get(), SIGNAL(disconnected()), this, SLOT(disconnectedSocket()));
     connect(socket.get(), SIGNAL(readyRead()), this, SLOT(readyRead()));
     socket->connectToHost(addr, port);
 
-    this->countOfThread = QThread::idealThreadCount();
+    this->countOfThread = 2*QThread::idealThreadCount()-1;
     QThreadPool::globalInstance()->setMaxThreadCount(countOfThread);
 }
 
@@ -52,6 +52,11 @@ Client::Client(int argc, char *argv[],const std::size_t countOfPacket, QObject* 
         this->isCorrect &= this->setPath(path);
     }
 
+}
+
+Client::~Client()
+{
+    socket->disconnect();
 }
 
 bool Client::isCorrectStart() const
@@ -142,7 +147,7 @@ void Client::theadPrepareFunction(std::size_t threadId)
     //Sends the last buffer to the send queue
     if (currentPacketSize != 0)
     {
-        info.resize(currentPacketSize * sizeof(pac));
+        info.resize(currentPacketSize);
         addDataToQueue(info);
     }
 }

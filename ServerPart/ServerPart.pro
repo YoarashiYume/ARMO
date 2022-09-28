@@ -1,6 +1,8 @@
 QT += network
 QT += widgets
 QT += core
+QT += gui
+
 
 TARGET = ServerPart
 CONFIG += c++11

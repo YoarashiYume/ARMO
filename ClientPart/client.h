@@ -60,6 +60,7 @@ public:
     Client() = delete;
     Client(const Client&) = delete;
     Client(Client&&) = delete;
+    ~Client();
 
     bool setPath(const QString& path);
 
