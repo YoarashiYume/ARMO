@@ -84,8 +84,8 @@ void Worker::readyRead()
             socketInfo.append(ptr->read(needToRead));
         }
         arrs.emplace_back(socketInfo);
-        Runnable* runnableObj = new Runnable;
-        runnableObj->innetFunction = std::bind(&Worker::updateImage, this, arrs.size()-1);
+        Worker::Runnable* runnableObj = new Worker::Runnable;
+        runnableObj->innerFunction = std::bind(&Worker::updateImage, this, arrs.size()-1);
         runnableObj->setAutoDelete(true);
         QThreadPool::globalInstance()->start(runnableObj);
         ++totalCountOfThread;

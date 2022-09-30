@@ -102,8 +102,8 @@ void Client::prepareData()
     //Create tasks
     for (auto i = 0u; i < countOfThread; ++i)
     {
-        Runnable *runnableObj = new Runnable;
-        runnableObj->innetFunction = std::bind(&Client::theadPrepareFunction, this, i);
+        Client::Runnable *runnableObj = new Client::Runnable;
+        runnableObj->innerFunction = std::bind(&Client::theadPrepareFunction, this, i);
         runnableObj->setAutoDelete(true);
         QThreadPool::globalInstance()->start(runnableObj);
     }

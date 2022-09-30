@@ -4,17 +4,24 @@
 #include <QRgb>
 #include <cstdint>
 
+/**
+\brief Struct contains information for image initialization
+*/
 struct InitialPacket
 {
-    //Initial packet with base information about image
-    std::uint16_t height, width;
+    std::uint16_t height,///< Image height
+	width;/// < Image width
 };
 
+/**
+\brief Struct contains information of image pixel
+*/
 struct Packet
 {
     //Packet contains coordinate of pixel and it`s color
-    std::uint16_t xCoord, yCoord;
-    QRgb rgba;
+    std::uint16_t xCoord,///< pixel position on the x-axis
+	yCoord;///< pixel position on the y-axis
+    QRgb rgba;///< pixel color + transparency
 };
 
 #endif // PACKET_H
