@@ -38,7 +38,7 @@ private:
 
     std::mutex mx;///< guarantees the correct filling the Workers buffer
 
-    std::unordered_map<key_type, value_type> storage; ///< guarantees the correct filling the Workers buffer (client handler storage)
+    std::unordered_map<key_type, value_type> storage; ///< client handler storage
 
     std::unique_ptr<QPushButton> exitButton;///< small GUI to close the server
     std::vector<std::pair<std::size_t, image_type>> imageList; ///< list of built images
